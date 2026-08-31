@@ -1,9 +1,9 @@
-# React + Vite
+# IMPORT TRUC L&B
+# PROPUESTA DE DISEÑO
 
 # Instalar dependencias:
 
 Bash
-
 
 npm install
 Iniciar el servidor de desarrollo:
