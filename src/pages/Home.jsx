@@ -49,6 +49,7 @@ export default function Home() {
           items={["Unidades importadas", "Precios competitivos", "Financiamiento disponible"]}
           img={"/images/camiones.jpg"}
           botonTexto="Ver camiones"
+          link="/camiones"
         />
         <CategoryCard 
           titulo="VENTA DE CARROS" 
@@ -56,6 +57,7 @@ export default function Home() {
           items={["Amplia variedad", "Excelentes condiciones", "Listos para entregar"]}
           img={"/images/cars.jpg"}
           botonTexto="Ver carros"
+          link="/carros"
         />
         <CategoryCard 
           titulo="ALQUILER DE TRANSPORTE" 
@@ -63,6 +65,7 @@ export default function Home() {
           items={["Camiones de volteo", "Transporte de carga pesada", "Servicio de camión basurero"]}
           img={"/images/renta.jpeg"}
           botonTexto="Ver servicios"
+          link="/alquiler"
         />
       </section>
 

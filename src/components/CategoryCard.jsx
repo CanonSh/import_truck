@@ -1,6 +1,7 @@
 import { Send } from 'lucide-react';
+import {Link} from 'react-router-dom';
 
-export default function CategoryCard({ titulo, subtitulo, items, botonTexto,img }) {
+export default function CategoryCard({ titulo, subtitulo, items, botonTexto,img, link }) {
   return (
     <div className="bg-[#0b1726]/90 border border-[#b8860b]/50 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
       <div>
@@ -24,9 +25,9 @@ export default function CategoryCard({ titulo, subtitulo, items, botonTexto,img 
         </ul>
       </div>
 
-      <button className="w-full bg-[#e5a93b] hover:bg-[#f5b84c] text-slate-950 font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-2">
+      <Link to={link} className="w-full bg-[#e5a93b] hover:bg-[#f5b84c] text-slate-950 font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-2">
         {botonTexto} <Send className="w-3.5 h-3.5 fill-slate-950" />
-      </button>
+      </Link>
     </div>
   );
 }

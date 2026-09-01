@@ -8,6 +8,7 @@ import Alquiler from './pages/Alquiler';
 import Vacantes from './pages/Vacantes';
 import Contacto from './pages/Contacto';
 
+
 export default function App() {
   return (
     <Router>
@@ -22,6 +23,7 @@ export default function App() {
               <Route path="/alquiler" element={<Alquiler />} />
               <Route path="/vacantes" element={<Vacantes />} />
               <Route path="/contacto" element={<Contacto />} />
+              <Route path="/contacto/:servicio" element={<Contacto />} />
             </Routes>
           </main>
         </div>

@@ -1,4 +1,5 @@
 import { Truck, Trash2, ShieldCheck, Clock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const SERVICIOS_ALQUILER = [
   {
@@ -36,9 +37,9 @@ export default function Alquiler() {
                 <h3 className="font-bold text-lg text-white mb-2">{s.titulo}</h3>
                 <p className="text-slate-300 text-xs leading-relaxed mb-6">{s.descripcion}</p>
               </div>
-              <button className="w-full bg-[#e5a93b] hover:bg-[#f5b84c] text-slate-950 font-bold py-2.5 rounded-lg text-xs transition-colors">
+              <Link to={`/contacto/${encodeURIComponent(s.titulo)}`} className="w-full bg-[#e5a93b] hover:bg-[#f5b84c] text-slate-950 font-bold py-2.5 rounded-lg text-xs transition-colors text-center">
                 Cotizar servicio
-              </button>
+              </Link>
             </div>
           );
         })}
