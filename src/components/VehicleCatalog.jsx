@@ -76,7 +76,7 @@ export default function VehicleCatalog({ titulo, subtitulo, vehiculos, marcas })
 
       {/* grid de tarjetas (1 col en cel, 2 en sm, 3 en md, 4/5 en lg) */}
       {vehiculosFiltrados.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full h-auto">
           {vehiculosFiltrados.map((v) => (
             <VehicleCard key={v.id} {...v} />
           ))}

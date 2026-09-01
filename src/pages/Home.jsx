@@ -4,11 +4,11 @@ import DriverBanner from '../components/DriverBanner';
 import { Send, Truck, Car, Key, Wrench } from 'lucide-react';
 
 const VEHICULOS = [
-  { id: 1, titulo: 'Freightliner Cascadia 2018', motor: 'Detroit DD15', transmision: 'Automático', recorrido: '600,000 millas', precio: '42,500' },
-  { id: 2, titulo: 'Mack Granite Volteo 2017', motor: 'Mack MP8', transmision: 'Manual 10 vel.', recorrido: '450,000 millas', precio: '58,000' },
-  { id: 3, titulo: 'Isuzu NPR 2019', motor: '5.2L Diesel', transmision: 'Manual', recorrido: '220,000 km', precio: '32,900' },
-  { id: 4, titulo: 'Kenworth T800 Volteo 2016', motor: 'Cummins ISX', transmision: 'Manual 18 vel.', recorrido: '520,000 millas', precio: '66,500' },
-  { id: 5, titulo: 'Hino 500 Volteo 2020', motor: 'J08E', transmision: 'Manual', recorrido: '180,000 km', precio: '47,900' },
+  { id: 1, titulo: 'Freightliner Cascadia 2018', motor: 'Detroit DD15', transmision: 'Automático', recorrido: '600,000 millas', precio: '42,500', img: '/images/cascadia.webp' },
+  { id: 2, titulo: 'Mack Granite Volteo 2017', motor: 'Mack MP8', transmision: 'Manual 10 vel.', recorrido: '450,000 millas', precio: '58,000', img: '/images/granite.jpeg' },
+  { id: 3, titulo: 'Isuzu NPR 2019', motor: '5.2L Diesel', transmision: 'Manual', recorrido: '220,000 km', precio: '32,900', img: '/images/npr.jpg' },
+  { id: 4, titulo: 'Kenworth T800 Volteo 2016', motor: 'Cummins ISX', transmision: 'Manual 18 vel.', recorrido: '520,000 millas', precio: '66,500', img: '/images/t800.jpeg' },
+  { id: 5, titulo: 'Hino 500 Volteo 2020', motor: 'J08E', transmision: 'Manual', recorrido: '180,000 km', precio: '47,900', img: '/images/hino.jpeg' },
 ];
 
 export default function Home() {
@@ -32,8 +32,12 @@ export default function Home() {
             Ver inventario completo <Send className="w-4 h-4 fill-slate-950"/>
           </button>
         </div>
-        <div className="w-full md:w-1/2 h-56 bg-[#122238] rounded-xl flex items-center justify-center text-slate-500 text-xs mt-6 md:mt-0 border border-slate-800">
-          [ Imagen Principal del Camión ]
+        <div className="w-full md:w-1/2 h-64 md:h-80 bg-[#122238] rounded-xl flex items-center justify-center overflow-hidden mt-6 md:mt-0 border border-slate-800">
+          <img 
+            src="/images/camion-banner2.webp" 
+            alt="Camión de transporte" 
+            className="w-full h-full object-cover"
+          />
         </div>
       </section>
 
@@ -43,18 +47,21 @@ export default function Home() {
           titulo="VENTA DE CAMIONES" 
           subtitulo="Camiones de todas las marcas y modelos."
           items={["Unidades importadas", "Precios competitivos", "Financiamiento disponible"]}
+          img={"/images/camiones.jpg"}
           botonTexto="Ver camiones"
         />
         <CategoryCard 
           titulo="VENTA DE CARROS" 
           subtitulo="Vehículos para uso personal o trabajo."
           items={["Amplia variedad", "Excelentes condiciones", "Listos para entregar"]}
+          img={"/images/cars.jpg"}
           botonTexto="Ver carros"
         />
         <CategoryCard 
           titulo="ALQUILER DE TRANSPORTE" 
           subtitulo="Soluciones de transporte de carga para tu empresa."
           items={["Camiones de volteo", "Transporte de carga pesada", "Servicio de camión basurero"]}
+          img={"/images/renta.jpeg"}
           botonTexto="Ver servicios"
         />
       </section>
@@ -64,8 +71,8 @@ export default function Home() {
             <h2 className="text-xl md:text-2xl font-black text-center text-white tracking-wider mb-6">
                 VEHÍCULOS DESTACADOS
             </h2>
-  
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 h-auto md:grid-cols-3 h-auto  lg:grid-cols-4 gap-4 h-auto w-full mb-6">
                 {VEHICULOS.map(v => <VehicleCard key={v.id} {...v} />)}
             </div>
   

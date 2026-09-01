@@ -1,14 +1,18 @@
 import { Send } from 'lucide-react';
 
-export default function CategoryCard({ titulo, subtitulo, items, botonTexto }) {
+export default function CategoryCard({ titulo, subtitulo, items, botonTexto,img }) {
   return (
     <div className="bg-[#0b1726]/90 border border-[#b8860b]/50 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
       <div>
         <h3 className="font-black text-center text-base text-[#e5a93b] tracking-wide uppercase">{titulo}</h3>
         <p className="text-center text-xs text-slate-300 mb-4">{subtitulo}</p>
         
-        <div className="bg-[#122238] h-32 rounded-lg mb-4 flex items-center justify-center text-slate-500 text-xs border border-slate-800">
-          [ Muestra de Vehículos ]
+        <div className="bg-[#122238] h-70 rounded-lg mb-4 flex items-center justify-center text-slate-500 text-xs border border-slate-800">
+          <img 
+            src={img} 
+            alt="Camiones de transporte" 
+            className="w-full h-full object-cover"
+          />
         </div>
 
         <ul className="text-xs text-slate-300 space-y-1.5 mb-5 px-1">

@@ -1,10 +1,10 @@
 import { Fuel, Settings, Gauge, Send } from 'lucide-react';
 
-export default function VehicleCard({ titulo, motor, transmision, recorrido, precio }) {
+export default function VehicleCard({ titulo, motor, transmision, recorrido, precio, img }) {
   return (
-    <div className="bg-[#0b1726]/90 border border-[#b8860b]/40 rounded-xl overflow-hidden flex flex-col justify-between p-3.5 shadow-lg hover:border-[#e5a93b] transition-all">
-      <div className="bg-[#122238] h-36 rounded-lg mb-3 flex items-center justify-center text-slate-500 text-xs font-medium border border-slate-800">
-        [ Imagen del Vehículo ]
+    <div className="bg-[#0b1726]/90 border border-[#b8860b]/40 rounded-xl overflow-hidden flex flex-col justify-between p-3.5 shadow-lg hover:border-[#e5a93b] transition-all h-auto w-auto">
+      <div className="bg-[#122238]  rounded-lg mb-3 flex items-center justify-center text-slate-500 text-xs font-medium border border-slate-800 h-80  w-auto">
+        <img src={img} alt={titulo} className="w-full h-full object-cover" />
       </div>
 
       <div>
