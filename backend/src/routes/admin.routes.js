@@ -1,12 +1,26 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const adminController = require('../controllers/admin.controller');
-const { verifyToken } = require('../middlewares/auth.middleware');
-
+const adminController = require("../controllers/admin.controller");
+const { verifyToken, verifyAdmin } = require("../middlewares/auth.middleware");
 // Todas protegidas
-router.get('/cotizaciones', verifyToken, adminController.getCotizaciones);
-router.get('/cotizaciones/:id', verifyToken, adminController.getCotizacionById);
-router.get('/mensajes', verifyToken, adminController.getMensajes);
-router.get('/solicitudes', verifyToken, adminController.getSolicitudes);
+router.get(
+  "/cotizaciones",
+  verifyToken,
+  verifyAdmin,
+  adminController.getCotizaciones,
+);
+router.get(
+  "/cotizaciones/:id",
+  verifyToken,
+  verifyAdmin,
+  adminController.getCotizacionById,
+);
+router.get("/mensajes", verifyToken, verifyAdmin, adminController.getMensajes);
+router.get(
+  "/solicitudes",
+  verifyToken,
+  verifyAdmin,
+  adminController.getSolicitudes,
+);
 
 module.exports = router;
