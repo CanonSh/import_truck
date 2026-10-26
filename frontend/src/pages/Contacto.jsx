@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Loader2 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa6';
 import { useParams } from 'react-router-dom';
+import api from '../services/api';
 
 export default function Contacto() {
   const { servicio: servicioParam } = useParams();
-
+  const [cargando, setCargando] = useState(false);
   const [form, setForm] = useState({
     nombre: '',
     telefono: '',
@@ -39,6 +40,37 @@ export default function Contacto() {
     
     window.open(`https://api.whatsapp.com/send?phone=${numeroWA}&text=${encodeURIComponent(texto)}`, '_blank');
   };
+
+  //Nueva función: Guardar en base de datos
+  const handleSubmitDB = async (e) => {
+    e.preventDefault();
+    setCargando(true);
+    try {
+      await api.post('/public/contacto', {
+        nombre_remitente: form.nombre,
+        correo_remitente: form.correo,
+        asunto: form.servicio,
+        mensaje: `Teléfono: ${form.telefono}. Mensaje: ${form.mensaje}`
+      });
+      setEnviado(true);
+    } catch (error) {
+      console.error(error);
+      alert("Error al enviar el mensaje. Intenta de nuevo.");
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  if (enviado) {
+    return (
+      <div className="py-20 text-center flex flex-col items-center">
+        <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
+        <h2 className="text-2xl font-bold text-white mb-2">¡Mensaje Enviado!</h2>
+        <p className="text-slate-400 mb-6">Tu solicitud ha sido guardada. Nos pondremos en contacto pronto.</p>
+        <button onClick={() => setEnviado(false)} className="bg-[#e5a93b] text-slate-950 px-6 py-2 rounded-lg font-bold">Volver</button>
+      </div>
+    );
+  }
 
   const handleEmail = (e) => {
     e.preventDefault();

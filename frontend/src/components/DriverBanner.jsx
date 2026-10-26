@@ -1,10 +1,40 @@
 import { useState } from 'react';
-import { Send } from 'lucide-react';
+import { Send, CheckCircle } from 'lucide-react';
+import api from '../services/api'; // Importar api
 
 export default function DriverBanner() {
   const [form, setForm] = useState({ nombre: '', telefono: '', correo: '', ciudad: '', tipo: 'Ambos' });
 
+  const [enviado, setEnviado] = useState(false);
+
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Usamos id_vacante = 1 (de prueba) o lo dejamos null si es general
+      await api.post('/public/postular', {
+        nombre_candidato: form.nombre,
+        correo_candidato: form.correo,
+        telefono_candidato: form.telefono,
+        experiencia: `Ciudad: ${form.ciudad}. Busca: ${form.tipo}`
+      });
+      setEnviado(true);
+    } catch (error) {
+      console.error(error);
+      alert("Error al enviar postulación");
+    }
+  };
+
+  if (enviado) {
+    return (
+      <section className="bg-[#0b1726]/90 border-2 border-green-600/90 rounded-2xl p-8 text-center my-8 shadow-2xl">
+        <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+        <h2 className="text-xl font-bold text-white mb-2">¡Postulación Recibida!</h2>
+        <p className="text-slate-300 text-sm">Tu información ha sido guardada en nuestra base de datos.</p>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-[#0b1726]/90 border-2 border-red-600/90 rounded-2xl p-4 sm:p-6 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 my-8 shadow-2xl">
@@ -27,7 +57,7 @@ export default function DriverBanner() {
       </div>
 
       {/* Columna derecha formulario */}
-      <form onSubmit={(e) => e.preventDefault()} className="bg-[#050b14]/80 p-4 sm:p-5 rounded-xl border border-slate-800 flex flex-col gap-3">
+      <form onSubmit={handleSubmit} className="bg-[#050b14]/80 p-4 sm:p-5 rounded-xl border border-slate-800 flex flex-col gap-3">
         <h3 className="font-bold text-slate-100 text-sm">ENVÍA TU CURRÍCULUM</h3>
         <p className="text-xs text-slate-400 -mt-2 mb-1">Completa el formulario y nos pondremos en contacto.</p>
 
