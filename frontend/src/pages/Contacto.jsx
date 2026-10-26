@@ -1,18 +1,23 @@
-import { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, Send, Loader2 } from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa6';
-import { useParams } from 'react-router-dom';
-import api from '../services/api';
+import { useState, useEffect, useRef } from "react";
+import { Mail, Phone, MapPin, Send, Loader2, CheckCircle } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa6";
+import { useParams } from "react-router-dom";
+import api from "../services/api";
 
 export default function Contacto() {
   const { servicio: servicioParam } = useParams();
   const [cargando, setCargando] = useState(false);
+  const [enviado, setEnviado] = useState(false);
+  const [errorEnvio, setErrorEnvio] = useState("");
+  const envioEnCurso = useRef(false);
   const [form, setForm] = useState({
-    nombre: '',
-    telefono: '',
-    correo: '',
-    servicio: servicioParam ? decodeURIComponent(servicioParam) : 'Compra de vehículo',
-    mensaje: '',
+    nombre: "",
+    telefono: "",
+    correo: "",
+    servicio: servicioParam
+      ? decodeURIComponent(servicioParam)
+      : "Compra de vehículo",
+    mensaje: "",
   });
 
   // Sincronizar el campo si el parámetro de la URL cambia
@@ -31,32 +36,47 @@ export default function Contacto() {
 
   const handleWhatsApp = (e) => {
     e.preventDefault();
-    const numeroWA = '50372145892';
-    const texto = `Hola, mi nombre es ${form.nombre || 'Un cliente'}.\n` +
-                  `*Teléfono:* ${form.telefono}\n` +
-                  `*Correo:* ${form.correo}\n` +
-                  `*Servicio de interés:* ${form.servicio}\n` +
-                  `*Mensaje:* ${form.mensaje}`;
-    
-    window.open(`https://api.whatsapp.com/send?phone=${numeroWA}&text=${encodeURIComponent(texto)}`, '_blank');
+    const numeroWA = "50372145892";
+    const texto =
+      `Hola, mi nombre es ${form.nombre || "Un cliente"}.\n` +
+      `*Teléfono:* ${form.telefono}\n` +
+      `*Correo:* ${form.correo}\n` +
+      `*Servicio de interés:* ${form.servicio}\n` +
+      `*Mensaje:* ${form.mensaje}`;
+
+    window.open(
+      `https://api.whatsapp.com/send?phone=${numeroWA}&text=${encodeURIComponent(texto)}`,
+      "_blank",
+    );
   };
 
   //Nueva función: Guardar en base de datos
   const handleSubmitDB = async (e) => {
     e.preventDefault();
+    if (envioEnCurso.current) return;
+
+    envioEnCurso.current = true;
     setCargando(true);
+    setErrorEnvio("");
     try {
-      await api.post('/public/contacto', {
+      await api.post("/public/contacto", {
         nombre_remitente: form.nombre,
         correo_remitente: form.correo,
         asunto: form.servicio,
-        mensaje: `Teléfono: ${form.telefono}. Mensaje: ${form.mensaje}`
+        mensaje: `Teléfono: ${form.telefono}. Mensaje: ${form.mensaje}`,
       });
       setEnviado(true);
     } catch (error) {
-      console.error(error);
-      alert("Error al enviar el mensaje. Intenta de nuevo.");
+      const detalles = error.response?.data?.detalles
+        ?.map((detalle) => detalle.mensaje)
+        .join(" ");
+      setErrorEnvio(
+        detalles ||
+          error.response?.data?.error ||
+          "Error al enviar el mensaje. Intenta de nuevo.",
+      );
     } finally {
+      envioEnCurso.current = false;
       setCargando(false);
     }
   };
@@ -65,22 +85,32 @@ export default function Contacto() {
     return (
       <div className="py-20 text-center flex flex-col items-center">
         <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
-        <h2 className="text-2xl font-bold text-white mb-2">¡Mensaje Enviado!</h2>
-        <p className="text-slate-400 mb-6">Tu solicitud ha sido guardada. Nos pondremos en contacto pronto.</p>
-        <button onClick={() => setEnviado(false)} className="bg-[#e5a93b] text-slate-950 px-6 py-2 rounded-lg font-bold">Volver</button>
+        <h2 className="text-2xl font-bold text-white mb-2">
+          ¡Mensaje Enviado!
+        </h2>
+        <p className="text-slate-400 mb-6">
+          Tu solicitud ha sido guardada. Nos pondremos en contacto pronto.
+        </p>
+        <button
+          onClick={() => setEnviado(false)}
+          className="bg-[#e5a93b] text-slate-950 px-6 py-2 rounded-lg font-bold"
+        >
+          Volver
+        </button>
       </div>
     );
   }
 
   const handleEmail = (e) => {
     e.preventDefault();
-    const destinatario = 'info@importtrucklb.com';
+    const destinatario = "info@importtrucklb.com";
     const asunto = `Consulta sobre: ${form.servicio} - ${form.nombre}`;
-    const cuerpo = `Nombre: ${form.nombre}\n` +
-                   `Teléfono: ${form.telefono}\n` +
-                   `Correo: ${form.correo}\n` +
-                   `Servicio de interés: ${form.servicio}\n\n` +
-                   `Mensaje:\n${form.mensaje}`;
+    const cuerpo =
+      `Nombre: ${form.nombre}\n` +
+      `Teléfono: ${form.telefono}\n` +
+      `Correo: ${form.correo}\n` +
+      `Servicio de interés: ${form.servicio}\n\n` +
+      `Mensaje:\n${form.mensaje}`;
 
     window.location.href = `mailto:${destinatario}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
   };
@@ -88,16 +118,21 @@ export default function Contacto() {
   return (
     <div className="py-8 space-y-8">
       <div className="border-b border-slate-800 pb-4">
-        <h1 className="text-2xl sm:text-3xl font-black text-[#e5a93b]">CONTÁCTANOS</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-[#e5a93b]">
+          CONTÁCTANOS
+        </h1>
         <p className="text-slate-400 text-xs sm:text-sm mt-1">
-          ¿Tienes dudas o necesitas una cotización? Escríbenos y te atenderemos a la brevedad.
+          ¿Tienes dudas o necesitas una cotización? Escríbenos y te atenderemos
+          a la brevedad.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="bg-[#0b1726]/90 border border-[#b8860b]/40 rounded-2xl p-6 flex flex-col justify-between space-y-6">
           <div>
-            <h3 className="text-lg font-bold text-white mb-4">Información de Atención</h3>
+            <h3 className="text-lg font-bold text-white mb-4">
+              Información de Atención
+            </h3>
             <ul className="space-y-4 text-xs sm:text-sm text-slate-300">
               <li className="flex items-start gap-3">
                 <Phone className="w-5 h-5 text-[#e5a93b] shrink-0 mt-0.5" />
@@ -118,22 +153,27 @@ export default function Contacto() {
                 <MapPin className="w-5 h-5 text-[#e5a93b] shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold text-white">Ubicación</p>
-                  <p className="text-slate-400">Carretera a Santa Ana, Km 26, La Libertad, El Salvador</p>
+                  <p className="text-slate-400">
+                    Carretera a Santa Ana, Km 26, La Libertad, El Salvador
+                  </p>
                 </div>
               </li>
             </ul>
           </div>
 
           <div className="bg-[#122238] p-4 rounded-xl border border-slate-800 text-xs text-slate-400">
-            <strong className="text-slate-200">Horario:</strong> Lunes a Viernes de 8:00 AM a 5:00 PM. Sábados de 8:00 AM a 12:00 MD.
+            <strong className="text-slate-200">Horario:</strong> Lunes a Viernes
+            de 8:00 AM a 5:00 PM. Sábados de 8:00 AM a 12:00 MD.
           </div>
         </div>
 
         <div className="lg:col-span-2 bg-[#0b1726]/90 border border-slate-800 rounded-2xl p-6 sm:p-8">
-          <form className="space-y-4">
+          <form onSubmit={handleSubmitDB} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Nombre completo</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Nombre completo
+                </label>
                 <input
                   type="text"
                   name="nombre"
@@ -146,7 +186,9 @@ export default function Contacto() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Teléfono / WhatsApp</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Teléfono / WhatsApp
+                </label>
                 <input
                   type="text"
                   name="telefono"
@@ -161,7 +203,9 @@ export default function Contacto() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Correo electrónico</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Correo electrónico
+                </label>
                 <input
                   type="email"
                   name="correo"
@@ -174,7 +218,9 @@ export default function Contacto() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Servicio de interés</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Servicio de interés
+                </label>
                 <select
                   name="servicio"
                   value={form.servicio}
@@ -183,15 +229,21 @@ export default function Contacto() {
                 >
                   <option value="Compra de vehículo">Compra de vehículo</option>
                   <option value="Camiones de Volteo">Camiones de Volteo</option>
-                  <option value="Transporte de Carga Pesada">Transporte de Carga Pesada</option>
-                  <option value="Servicio de Camión Basurero">Servicio de Camión Basurero</option>
+                  <option value="Transporte de Carga Pesada">
+                    Transporte de Carga Pesada
+                  </option>
+                  <option value="Servicio de Camión Basurero">
+                    Servicio de Camión Basurero
+                  </option>
                   <option value="Contrato especial">Contrato especial</option>
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Mensaje o detalles de la solicitud</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                Mensaje o detalles de la solicitud
+              </label>
               <textarea
                 name="mensaje"
                 rows="4"
@@ -202,10 +254,33 @@ export default function Contacto() {
               ></textarea>
             </div>
 
+            {errorEnvio && (
+              <p role="alert" className="text-sm text-red-400">
+                {errorEnvio}
+              </p>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={cargando}
+                className="flex-1 bg-[#e5a93b] hover:bg-[#f5b84c] disabled:opacity-60 text-slate-950 font-bold py-3 px-4 rounded-lg text-xs transition-colors flex items-center justify-center gap-2"
+              >
+                {cargando ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" /> Enviar mensaje
+                  </>
+                )}
+              </button>
+
               <button
                 type="button"
                 onClick={handleWhatsApp}
+                disabled={cargando}
                 className="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg text-xs transition-colors flex items-center justify-center gap-2"
               >
                 <FaWhatsapp className="w-4 h-4" /> Enviar por WhatsApp
@@ -214,7 +289,8 @@ export default function Contacto() {
               <button
                 type="button"
                 onClick={handleEmail}
-                className="flex-1 bg-[#e5a93b] hover:bg-[#f5b84c] text-slate-950 font-bold py-3 px-4 rounded-lg text-xs transition-colors flex items-center justify-center gap-2"
+                disabled={cargando}
+                className="flex-1 bg-[#e5a93b] hover:bg-[#f5b84c] disabled:opacity-60 text-slate-950 font-bold py-3 px-4 rounded-lg text-xs transition-colors flex items-center justify-center gap-2"
               >
                 <Send className="w-4 h-4 fill-slate-950" /> Enviar por Correo
               </button>
