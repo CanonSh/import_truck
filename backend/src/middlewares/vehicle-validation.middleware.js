@@ -20,12 +20,14 @@ const vehicleFieldsValidation = [
     .custom((value) => Number(value) >= 0 && Number(value) <= 99999999.99)
     .withMessage("El precio excede el límite de la base de datos."),
   body("caracteristicas")
-    .optional({ values: "falsy" })
+    .optional({ values: "null" })
+    .customSanitizer(value => value === "" ? null : value)
     .isString()
     .withMessage("Las características deben ser texto.")
     .bail().isLength({ max: 16000 }).withMessage("Las características son demasiado extensas."),
   body("imagen_url")
-    .optional({ values: "falsy" })
+    .optional({ values: "null" })
+    .customSanitizer(value => value === "" ? null : value)
     .isString()
     .withMessage("La URL de imagen debe ser texto.")
     .bail()
@@ -35,16 +37,18 @@ const vehicleFieldsValidation = [
       /^https?:\/\//i.test(value) && Boolean(new URL(value).hostname))
     .withMessage("La URL de imagen debe ser HTTP(S) o una imagen de uploads."),
   body("estado")
-    .optional({ values: "falsy" })
+    .optional({ values: "null" })
+    .customSanitizer(value => value === "" ? null : value)
+    .isString().withMessage("El estado debe ser texto.").bail()
     .isIn(["Disponible", "Vendido", "Reservado"])
     .withMessage("El estado del vehículo no es válido."),
 ];
 
 const vehicleIdValidation = positiveId("id");
 const vehicleQueryValidation = [
-  query("marca").optional().isString().bail().isLength({ min: 1, max: 100 }),
-  query("busqueda").optional().isString().bail().isLength({ min: 1, max: 100 }),
-  query("anio").optional().isInt({ min: 1886, max: new Date().getFullYear() + 1 }),
+  query("marca").optional({ values: "falsy" }).isString().bail().isLength({ min: 1, max: 100 }),
+  query("busqueda").optional({ values: "falsy" }).isString().bail().isLength({ min: 1, max: 100 }),
+  query("anio").optional({ values: "falsy" }).isString().bail().isInt({ min: 1886, max: new Date().getFullYear() + 1 }),
 ];
 
 const validateVehicleRequest = async (req, res, next) => {

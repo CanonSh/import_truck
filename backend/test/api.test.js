@@ -64,7 +64,7 @@ test('HTTP: JSON malformado, tamaño y CORS', async () => {
 test('HTTP: validaciones rechazan IDs, filtros y campos antes de SQL', async () => {
   execute = async () => { throw new Error('No debe consultar SQL'); };
   const admin = {authorization:`Bearer ${jwt.sign({rol:'admin'}, process.env.JWT_SECRET)}`};
-  for (const path of ['/api/vehiculos/no-id', '/api/vehiculos/0', '/api/vehiculos?marca=a&marca=b', '/api/vehiculos?anio=abc', '/api/admin/cotizaciones/1abc']) {
+  for (const path of ['/api/vehiculos/no-id', '/api/vehiculos/0', '/api/vehiculos?marca=a&marca=b', '/api/vehiculos?anio=abc', '/api/vehiculos?anio=2020&anio=2021', '/api/admin/cotizaciones/1abc']) {
     assert.equal((await request(path, undefined, admin)).status, 400, path);
   }
   for (const body of [[], {}, {nombre_cliente:'Ana', correo_cliente:'ana@example.com', telefono_cliente:'abcdefgh', requerimiento:'Camión'},
@@ -72,9 +72,14 @@ test('HTTP: validaciones rechazan IDs, filtros y campos antes de SQL', async () 
     assert.equal((await request('/api/public/cotizaciones', body)).status, 400);
   }
   const vehicle = {tipo_vehiculo:'Camión', marca:'Volvo', modelo:'VNL', anio:2020, precio:100};
-  for (const changes of [{precio:-1}, {anio:-1}, {estado:'unknown'}, {imagen_url:'javascript:alert(1)'}, {marca:[]}]) {
+  for (const changes of [{precio:-1}, {anio:-1}, {estado:'unknown'}, {estado:['Disponible']}, {estado:false}, {precio:[100]}, {anio:[2020]}, {imagen_url:'javascript:alert(1)'}, {marca:[]}]) {
     assert.equal((await request('/api/vehiculos', {...vehicle, ...changes}, admin)).status, 400);
   }
+});
+
+test('HTTP: conserva filtros vacíos como consultas sin filtro', async () => {
+  execute = async () => [[]];
+  assert.equal((await request('/api/vehiculos?marca=&anio=&busqueda=')).status, 200);
 });
 
 test('HTTP: cotización con referencia inexistente devuelve 404', async () => {
@@ -115,5 +120,17 @@ test('HTTP: archivo decodificado se limpia cuando falla la validación o SQL', a
     const response = await fetch(base + '/api/vehiculos', {method:'POST', headers:admin, body:form});
     assert.equal(response.status, valid ? 500 : 400);
     assert.deepEqual((await fs.readdir(uploads)).sort(), before);
+  }
+});
+
+test('Arranque rechaza JWT_SECRET ausente o débil', () => {
+  const {spawnSync} = require('child_process');
+  const path = require('path');
+  for (const secret of ['', 'short']) {
+    const result = spawnSync(process.execPath, ['server.js'], {
+      cwd:path.resolve(__dirname, '..'), env:{...process.env, JWT_SECRET:secret}, encoding:'utf8', timeout:5000,
+    });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /JWT_SECRET debe contener al menos 32 bytes/);
   }
 });
