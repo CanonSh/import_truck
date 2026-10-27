@@ -23,6 +23,9 @@ exports.crearCotizacion = async (req, res) => {
     );
     res.status(201).json({ mensaje: "Cotización enviada con éxito" });
   } catch (error) {
+    if (error.code === "ER_NO_REFERENCED_ROW_2") {
+      return res.status(404).json({ error: "Vehículo o servicio no encontrado" });
+    }
     res.status(500).json({ error: "Error al guardar cotización" });
   }
 };

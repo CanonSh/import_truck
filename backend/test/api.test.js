@@ -60,3 +60,60 @@ test('HTTP: JSON malformado, tamaño y CORS', async () => {
   assert.equal(denied.headers.get('access-control-allow-origin'), null);
   assert.equal(denied.headers.get('x-powered-by'), null);
 });
+
+test('HTTP: validaciones rechazan IDs, filtros y campos antes de SQL', async () => {
+  execute = async () => { throw new Error('No debe consultar SQL'); };
+  const admin = {authorization:`Bearer ${jwt.sign({rol:'admin'}, process.env.JWT_SECRET)}`};
+  for (const path of ['/api/vehiculos/no-id', '/api/vehiculos/0', '/api/vehiculos?marca=a&marca=b', '/api/vehiculos?anio=abc', '/api/admin/cotizaciones/1abc']) {
+    assert.equal((await request(path, undefined, admin)).status, 400, path);
+  }
+  for (const body of [[], {}, {nombre_cliente:'Ana', correo_cliente:'ana@example.com', telefono_cliente:'abcdefgh', requerimiento:'Camión'},
+    {nombre_cliente:'Ana', correo_cliente:'ana@example.com', telefono_cliente:'7777-7777', requerimiento:'Camión', id_vehiculo:0}]) {
+    assert.equal((await request('/api/public/cotizaciones', body)).status, 400);
+  }
+  const vehicle = {tipo_vehiculo:'Camión', marca:'Volvo', modelo:'VNL', anio:2020, precio:100};
+  for (const changes of [{precio:-1}, {anio:-1}, {estado:'unknown'}, {imagen_url:'javascript:alert(1)'}, {marca:[]}]) {
+    assert.equal((await request('/api/vehiculos', {...vehicle, ...changes}, admin)).status, 400);
+  }
+});
+
+test('HTTP: cotización con referencia inexistente devuelve 404', async () => {
+  execute = async () => { throw Object.assign(new Error('FK'), {code:'ER_NO_REFERENCED_ROW_2'}); };
+  const response = await request('/api/public/cotizaciones', {nombre_cliente:'Ana', correo_cliente:'ana@example.com', telefono_cliente:'7777-7777', requerimiento:'Camión', id_vehiculo:999});
+  assert.equal(response.status, 404);
+});
+
+test('HTTP: cargas falsificadas, SVG, campos inesperados y límite de tamaño', async () => {
+  execute = async () => { throw new Error('No debe consultar SQL'); };
+  const admin = {authorization:`Bearer ${jwt.sign({rol:'admin'}, process.env.JWT_SECRET)}`};
+  for (const [field, type, data, status] of [
+    ['imagen', 'image/jpeg', '<script>bad</script>', 400],
+    ['imagen', 'image/svg+xml', '<svg></svg>', 400],
+    ['archivo', 'image/png', 'bad', 400],
+    ['imagen', 'image/png', 'a'.repeat(5 * 1024 * 1024 + 1), 400],
+  ]) {
+    const form = new FormData();
+    form.append(field, new Blob([data], {type}), 'unsafe.html');
+    const response = await fetch(base + '/api/vehiculos', {method:'POST', headers:admin, body:form});
+    assert.equal(response.status, status);
+  }
+});
+
+test('HTTP: archivo decodificado se limpia cuando falla la validación o SQL', async () => {
+  const fs = require('fs/promises');
+  const path = require('path');
+  const sharp = require('sharp');
+  const uploads = path.resolve(__dirname, '../uploads');
+  const before = (await fs.readdir(uploads)).sort();
+  const png = await sharp({create:{width:2,height:2,channels:3,background:'red'}}).png().toBuffer();
+  const admin = {authorization:`Bearer ${jwt.sign({rol:'admin'}, process.env.JWT_SECRET)}`};
+  for (const valid of [false, true]) {
+    execute = async () => { throw new Error('SQL offline'); };
+    const form = new FormData();
+    if (valid) for (const [key,value] of Object.entries({tipo_vehiculo:'Camión', marca:'Volvo', modelo:'VNL', anio:'2020', precio:'100'})) form.append(key,value);
+    form.append('imagen', new Blob([png], {type:'image/png'}), 'same.png');
+    const response = await fetch(base + '/api/vehiculos', {method:'POST', headers:admin, body:form});
+    assert.equal(response.status, valid ? 500 : 400);
+    assert.deepEqual((await fs.readdir(uploads)).sort(), before);
+  }
+});

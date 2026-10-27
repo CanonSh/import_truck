@@ -41,7 +41,9 @@ app.use((req, res) => {
 
 // Manejo de errores (DEBE tener 4 parámetros: err, req, res, next)
 app.use((err, req, res, next) => {
-  console.error("💥 Error:", err.message);
+  if (!err.type && !err.code && err.message !== "El archivo debe ser una imagen") {
+    console.error("Error de solicitud:", err.name);
+  }
   if (err.type === "entity.parse.failed") {
     return res.status(400).json({
       error: "Solicitud inválida",

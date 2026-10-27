@@ -6,12 +6,13 @@ const upload = require("../middlewares/upload.middleware");
 const {
   vehicleFieldsValidation,
   vehicleIdValidation,
+  vehicleQueryValidation,
   validateVehicleRequest,
 } = require("../middlewares/vehicle-validation.middleware");
 
 // Ruta pública (Catálogo)
-router.get("/", vehiculoController.getVehiculos);
-router.get("/:id", vehiculoController.getVehiculoById);
+router.get("/", ...vehicleQueryValidation, validateVehicleRequest, vehiculoController.getVehiculos);
+router.get("/:id", vehicleIdValidation, validateVehicleRequest, vehiculoController.getVehiculoById);
 
 // Rutas privadas (Solo Admin logueado)
 // Usamos upload.single('imagen') para permitir subida de archivos (el campo en el FormData debe llamarse 'imagen')
