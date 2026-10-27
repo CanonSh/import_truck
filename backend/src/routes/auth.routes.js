@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/auth.controller");
+const { rateLimit } = require("express-rate-limit");
 const {
   requireObjectBody,
   requiredText,
@@ -20,6 +21,8 @@ const loginValidation = [
 
 router.post(
   "/login",
+  rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: "draft-8", legacyHeaders: false,
+    message: { error: "Demasiados intentos. Intenta más tarde." } }),
   requireObjectBody,
   ...loginValidation,
   validateRequest,

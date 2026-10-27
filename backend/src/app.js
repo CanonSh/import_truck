@@ -1,13 +1,22 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const helmet = require("helmet");
+const { rateLimit } = require("express-rate-limit");
 
 const app = express();
 
 // Middlewares globales
-app.use(cors()); // Permite peticiones desde React
-app.use(express.json()); // Permite leer JSON en el body
-app.use(express.urlencoded({ extended: true }));
+app.disable("x-powered-by");
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+const origins = (process.env.CORS_ORIGINS || "http://localhost:5173,http://127.0.0.1:5173")
+  .split(",").map((origin) => origin.trim());
+app.use(cors({ origin: origins }));
+app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: false, limit: "100kb" }));
+app.use("/api/public", rateLimit({ windowMs: 15 * 60 * 1000, limit: 100,
+  standardHeaders: "draft-8", legacyHeaders: false,
+  message: { error: "Demasiadas solicitudes. Intenta más tarde." } }));
 
 // Servir la carpeta de imágenes estáticamente
 // Ejemplo: http://localhost:3000/uploads/123456.jpg
@@ -41,6 +50,9 @@ app.use((err, req, res, next) => {
       ],
     });
   }
+  if (err.type === "entity.too.large") {
+    return res.status(413).json({ error: "Solicitud demasiado grande" });
+  }
   if (err.message === "El archivo debe ser una imagen") {
     return res.status(400).json({ error: err.message });
   }
@@ -48,6 +60,9 @@ app.use((err, req, res, next) => {
     return res
       .status(400)
       .json({ error: "Archivo demasiado grande (máx 5MB)" });
+  }
+  if (err.name === "MulterError") {
+    return res.status(400).json({ error: "Carga de archivo inválida" });
   }
   res.status(500).json({ error: "Error interno del servidor" });
 });
