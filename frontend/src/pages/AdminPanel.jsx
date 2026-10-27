@@ -3,6 +3,7 @@ import { Loader2, LogOut, RefreshCw } from "lucide-react";
 import api from "../services/api";
 import { useAuth } from "../hooks/useAuth";
 import VehicleManager from "../components/VehicleManager";
+import VacancyManager from "../components/VacancyManager";
 
 const SECCIONES = {
   cotizaciones: {
@@ -23,6 +24,11 @@ const SECCIONES = {
   vehiculos: {
     label: "Vehículos",
   },
+  vacantes: {
+    label: "Vacantes",
+    endpoint: "/admin/vacantes",
+    id: "id_vacante",
+  },
 };
 
 const formatoFecha = (value) => {
@@ -34,6 +40,25 @@ const formatoFecha = (value) => {
 };
 
 function Registro({ seccion, registro }) {
+  if (seccion === "vacantes") {
+    return (
+      <article className="border-b border-slate-800 py-5">
+        <div className="flex flex-wrap justify-between gap-2">
+          <h2 className="font-bold text-white">{registro.titulo_puesto}</h2>
+          <time className="text-xs text-slate-500">
+            {formatoFecha(registro.fecha_publicacion)}
+          </time>
+        </div>
+        <p className="mt-1 text-sm text-slate-300">
+          Estado: {registro.estado_vacante}
+        </p>
+        <p className="mt-3 whitespace-pre-line text-sm text-slate-400">
+          {registro.descripcion_puesto}
+        </p>
+      </article>
+    );
+  }
+
   if (seccion === "cotizaciones") {
     return (
       <article className="border-b border-slate-800 py-5">
@@ -187,6 +212,8 @@ export default function AdminPanel() {
       <div className="mt-2">
         {seccion === "vehiculos" ? (
           <VehicleManager />
+        ) : seccion === "vacantes" ? (
+          <VacancyManager />
         ) : cargando ? (
           <p
             role="status"

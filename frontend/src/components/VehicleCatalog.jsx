@@ -12,32 +12,67 @@ export default function VehicleCatalog({
 }) {
   const [busqueda, setBusqueda] = useState("");
   const [marcaSeleccionada, setMarcaSeleccionada] = useState("Todas");
+  const [tipoSeleccionado, setTipoSeleccionado] = useState("Todos");
   const [anioSeleccionado, setAnioSeleccionado] = useState("Todos");
+  const [precioMinimo, setPrecioMinimo] = useState("");
+  const [precioMaximo, setPrecioMaximo] = useState("");
 
   const marcas = [
     ...new Set(vehiculos.map((vehiculo) => vehiculo.marca).filter(Boolean)),
   ].sort();
+  const tipos = [
+    ...new Set(
+      vehiculos.map((vehiculo) => vehiculo.tipo_vehiculo).filter(Boolean),
+    ),
+  ].sort();
+  const anios = [
+    ...new Set(
+      vehiculos
+        .map((vehiculo) => Number(vehiculo.anio))
+        .filter(Number.isInteger),
+    ),
+  ].sort((a, b) => b - a);
+
   const vehiculosFiltrados = vehiculos.filter((v) => {
-    const textoVehiculo = [
-      v.marca,
-      v.modelo,
-      v.tipo_vehiculo,
-      v.caracteristicas,
-    ]
+    const textoVehiculo = [v.marca, v.modelo]
       .filter(Boolean)
       .join(" ")
       .toLocaleLowerCase();
     const coincideTexto = textoVehiculo.includes(busqueda.toLocaleLowerCase());
     const coincideMarca =
       marcaSeleccionada === "Todas" || v.marca === marcaSeleccionada;
+    const coincideTipo =
+      tipoSeleccionado === "Todos" || v.tipo_vehiculo === tipoSeleccionado;
     const anio = Number(v.anio);
     const coincideAnio =
-      anioSeleccionado === "Todos" ||
-      (anioSeleccionado === "2020+" && anio >= 2020) ||
-      (anioSeleccionado === "2015-2019" && anio >= 2015 && anio <= 2019);
+      anioSeleccionado === "Todos" || anio === Number(anioSeleccionado);
+    const precio = Number(v.precio);
+    const precioDisponible = Number.isFinite(precio);
+    const coincidePrecioMinimo =
+      precioMinimo === "" ||
+      (precioDisponible && precio >= Number(precioMinimo));
+    const coincidePrecioMaximo =
+      precioMaximo === "" ||
+      (precioDisponible && precio <= Number(precioMaximo));
 
-    return coincideTexto && coincideMarca && coincideAnio;
+    return (
+      coincideTexto &&
+      coincideMarca &&
+      coincideTipo &&
+      coincideAnio &&
+      coincidePrecioMinimo &&
+      coincidePrecioMaximo
+    );
   });
+
+  const limpiarFiltros = () => {
+    setBusqueda("");
+    setMarcaSeleccionada("Todas");
+    setTipoSeleccionado("Todos");
+    setAnioSeleccionado("Todos");
+    setPrecioMinimo("");
+    setPrecioMaximo("");
+  };
 
   return (
     <div className="py-8 space-y-6">
@@ -49,50 +84,95 @@ export default function VehicleCatalog({
         <p className="text-slate-400 text-xs sm:text-sm mt-1">{subtitulo}</p>
       </div>
 
-      {/* barra de busqueda y filtros responsive */}
-      <div className="bg-[#0b1726]/90 p-4 rounded-xl border border-slate-800/80 flex flex-col md:flex-row gap-3 items-center justify-between shadow-lg">
-        {/* input de busqueda */}
-        <div className="relative w-full md:w-72">
+      <div className="bg-[#0b1726]/90 p-4 rounded-xl border border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 shadow-lg">
+        <div className="relative w-full">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Buscar por modelo o motor..."
+            aria-label="Buscar por marca o modelo"
+            placeholder="Buscar por marca o modelo..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             className="w-full bg-[#122238] border border-slate-700 text-slate-200 text-xs pl-9 pr-3 py-2.5 rounded-lg focus:outline-none focus:border-[#e5a93b] placeholder:text-slate-500"
           />
         </div>
 
-        {/* filtros dropdown */}
-        <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3 items-center">
-          <div className="flex items-center gap-1.5 text-xs text-slate-400 w-full sm:w-auto">
-            <Filter className="w-3.5 h-3.5 text-[#e5a93b]" />
-            <span>Filtrar:</span>
-          </div>
-
+        <label className="flex items-center gap-2 text-xs text-slate-400">
+          <Filter className="h-4 w-4 shrink-0 text-[#e5a93b]" />
           <select
-            value={marcaSeleccionada}
-            onChange={(e) => setMarcaSeleccionada(e.target.value)}
-            className="w-full sm:w-auto bg-[#122238] border border-slate-700 text-slate-200 text-xs px-3 py-2.5 rounded-lg focus:outline-none focus:border-[#e5a93b]"
+            aria-label="Filtrar por tipo"
+            value={tipoSeleccionado}
+            onChange={(event) => setTipoSeleccionado(event.target.value)}
+            className="w-full bg-[#122238] border border-slate-700 text-slate-200 text-xs px-3 py-2.5 rounded-lg focus:outline-none focus:border-[#e5a93b]"
           >
-            <option value="Todas">Todas las marcas</option>
-            {marcas.map((m) => (
-              <option key={m} value={m}>
-                {m}
+            <option value="Todos">Todos los tipos</option>
+            {tipos.map((tipo) => (
+              <option key={tipo} value={tipo}>
+                {tipo}
               </option>
             ))}
           </select>
+        </label>
 
-          <select
-            value={anioSeleccionado}
-            onChange={(e) => setAnioSeleccionado(e.target.value)}
-            className="w-full sm:w-auto bg-[#122238] border border-slate-700 text-slate-200 text-xs px-3 py-2.5 rounded-lg focus:outline-none focus:border-[#e5a93b]"
-          >
-            <option value="Todos">Año (Todos)</option>
-            <option value="2020+">2020 en adelante</option>
-            <option value="2015-2019">2015 a 2019</option>
-          </select>
-        </div>
+        <select
+          aria-label="Filtrar por marca"
+          value={marcaSeleccionada}
+          onChange={(event) => setMarcaSeleccionada(event.target.value)}
+          className="w-full bg-[#122238] border border-slate-700 text-slate-200 text-xs px-3 py-2.5 rounded-lg focus:outline-none focus:border-[#e5a93b]"
+        >
+          <option value="Todas">Todas las marcas</option>
+          {marcas.map((marca) => (
+            <option key={marca} value={marca}>
+              {marca}
+            </option>
+          ))}
+        </select>
+
+        <select
+          aria-label="Filtrar por año"
+          value={anioSeleccionado}
+          onChange={(event) => setAnioSeleccionado(event.target.value)}
+          className="w-full bg-[#122238] border border-slate-700 text-slate-200 text-xs px-3 py-2.5 rounded-lg focus:outline-none focus:border-[#e5a93b]"
+        >
+          <option value="Todos">Todos los años</option>
+          {anios.map((anio) => (
+            <option key={anio} value={String(anio)}>
+              {anio}
+            </option>
+          ))}
+        </select>
+
+        <label className="space-y-1 text-xs text-slate-400">
+          Precio mínimo
+          <input
+            aria-label="Precio mínimo"
+            type="number"
+            step="0.01"
+            value={precioMinimo}
+            onChange={(event) => setPrecioMinimo(event.target.value)}
+            className="w-full bg-[#122238] border border-slate-700 text-slate-200 text-xs px-3 py-2.5 rounded-lg focus:outline-none focus:border-[#e5a93b]"
+          />
+        </label>
+
+        <label className="space-y-1 text-xs text-slate-400">
+          Precio máximo
+          <input
+            aria-label="Precio máximo"
+            type="number"
+            step="0.01"
+            value={precioMaximo}
+            onChange={(event) => setPrecioMaximo(event.target.value)}
+            className="w-full bg-[#122238] border border-slate-700 text-slate-200 text-xs px-3 py-2.5 rounded-lg focus:outline-none focus:border-[#e5a93b]"
+          />
+        </label>
+
+        <button
+          type="button"
+          onClick={limpiarFiltros}
+          className="self-end rounded-lg border border-slate-700 px-3 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 sm:col-span-2 lg:col-span-3 lg:justify-self-end"
+        >
+          Limpiar filtros
+        </button>
       </div>
 
       {/* grid de tarjetas (1 col en cel, 2 en sm, 3 en md, 4/5 en lg) */}
