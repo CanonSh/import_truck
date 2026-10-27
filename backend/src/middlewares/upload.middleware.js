@@ -1,33 +1,47 @@
 const multer = require('multer');
+const sharp = require('sharp');
+const { randomUUID } = require('crypto');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs/promises');
 
 const uploadsDir = path.join(__dirname, '../../uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-    console.log('📁 Carpeta uploads creada');
-}
-
-// Configuración de almacenamiento
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadsDir); // Carpeta donde se guardan
-    },
-    filename: (req, file, cb) => {
-        // Nombre único: fecha + nombre original
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
+const maxSize = 5 * 1024 * 1024;
+const parser = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: maxSize, files: 1, fields: 12, fieldSize: 100 * 1024, parts: 13 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    cb(allowed.includes(file.mimetype) ? null : new Error('El archivo debe ser una imagen'), allowed.includes(file.mimetype));
+  },
 });
 
-// Filtro para aceptar solo imágenes
-const fileFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-        cb(null, true);
-    } else {
-        cb(new Error('El archivo debe ser una imagen'), false);
+module.exports.single = (field) => (req, res, next) => {
+  parser.single(field)(req, res, async (error) => {
+    if (error) return next(error);
+    if (!req.file) return next();
+    let output;
+    let format;
+    try {
+      const image = sharp(req.file.buffer, { failOn: 'warning', limitInputPixels: 40000000 });
+      const metadata = await image.metadata();
+      format = metadata.format;
+      if (!['jpeg', 'png', 'webp'].includes(format) || (metadata.pages || 1) > 1 ||
+          req.file.mimetype !== `image/${format}`) throw new Error('Invalid image');
+      // Decodificar y volver a codificar: rechaza contenido truncado y elimina metadatos.
+      output = await image.rotate().toFormat(format).toBuffer();
+      if (output.length > maxSize) throw new Error('Invalid image');
+    } catch {
+      return next(new Error('El archivo debe ser una imagen'));
     }
+    try {
+      await fs.mkdir(uploadsDir, { recursive: true });
+      const filename = `managed-${randomUUID()}.${format}`;
+      const filePath = path.join(uploadsDir, filename);
+      await fs.writeFile(filePath, output, { flag: 'wx' });
+      req.file = { filename, path: filePath, mimetype: `image/${format}`, size: output.length };
+      next();
+    } catch (error) {
+      next(error);
+    }
+  });
 };
-
-const upload = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
-
-module.exports = upload;

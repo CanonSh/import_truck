@@ -2,16 +2,16 @@ const jwt = require("jsonwebtoken");
 
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  const [scheme, token] = authHeader?.split(" ") || [];
+  const [scheme, token, extra] = authHeader?.split(" ") || [];
 
-  if (scheme !== "Bearer" || !token) {
+  if (scheme !== "Bearer" || !token || extra !== undefined) {
     return res.status(401).json({
       error: "Acceso denegado. Token no proporcionado.",
     });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
     req.user = decoded;
     next();
   } catch (error) {

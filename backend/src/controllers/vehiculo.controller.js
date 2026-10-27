@@ -20,6 +20,8 @@ const removeImageIfUnreferenced = async (imageUrl) => {
 
   const filename = imageUrl.slice("/uploads/".length);
   if (!filename || path.basename(filename) !== filename) return;
+  // Solo borrar archivos generados por este backend; conservar fotografías originales.
+  if (!/^managed-[0-9a-f-]{36}\.(jpeg|png|webp)$/.test(filename)) return;
 
   const [rows] = await db.execute(
     "SELECT COUNT(*) AS total FROM Vehiculos WHERE imagen_url = ?",

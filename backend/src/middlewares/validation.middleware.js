@@ -1,4 +1,4 @@
-const { body, validationResult } = require("express-validator");
+const { body, param, validationResult } = require("express-validator");
 
 const requireObjectBody = (req, res, next) => {
   if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
@@ -36,6 +36,14 @@ const requiredText = (
   return validator;
 };
 
+const requiredPhone = (field, label) => requiredText(field, label, 15)
+  .bail().matches(/^\+?[0-9 ()-]+$/).withMessage(`${label} no es válido.`)
+  .bail().custom(value => value.replace(/\D/g, '').length >= 7)
+  .withMessage(`${label} debe contener al menos 7 dígitos.`);
+
+const positiveId = (field) => param(field).isInt({ min: 1, max: 2147483647 })
+  .withMessage("El ID debe ser un entero positivo válido.");
+
 const requiredEmail = (field, label) =>
   requiredText(field, label, 100)
     .bail()
@@ -61,5 +69,7 @@ module.exports = {
   requireObjectBody,
   requiredText,
   requiredEmail,
+  requiredPhone,
+  positiveId,
   validateRequest,
 };
