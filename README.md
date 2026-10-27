@@ -90,6 +90,20 @@ El build de Vite escribe el resultado en `frontend/dist/`.
 
 ## Administración
 
-La administración requiere iniciar sesión con una cuenta cuyo rol sea `admin`. El backend valida el JWT y el rol en cada ruta protegida; ocultar páginas en React no sustituye esa protección. El esquema incluye datos seed para desarrollo. No uses credenciales de demostración en producción ni ejecutes `backend/pass.js` sin revisar su efecto: ese script cambia o crea la cuenta seed.
+La administración requiere iniciar sesión con una cuenta cuyo rol sea `admin`. El backend valida el JWT y el rol en cada ruta protegida; ocultar páginas en React no sustituye esa protección.
+
+El script SQL crea las tablas y datos de ejemplo, pero no crea una cuenta administrativa. Después de configurar `backend/.env` y crear la base, aprovisiona la primera cuenta desde `backend/` en una terminal interactiva. El script pide el correo y la contraseña sin incluirlos en el comando ni en el historial del shell:
+
+```bash
+cd backend
+read -r -p "Correo del administrador: " ADMIN_EMAIL
+read -r -s -p "Contraseña (mínimo 12 caracteres): " ADMIN_PASSWORD
+printf '\n'
+export ADMIN_EMAIL ADMIN_PASSWORD
+node pass.js
+unset ADMIN_EMAIL ADMIN_PASSWORD
+```
+
+La contraseña debe tener al menos 12 caracteres
 
 Para producción, configura una base de datos y un secreto JWT propios, restringe permisos MySQL y sirve la aplicación mediante HTTPS. No reutilices los datos ni las credenciales de desarrollo.
