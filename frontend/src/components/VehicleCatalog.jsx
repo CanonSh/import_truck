@@ -1,23 +1,40 @@
-import { useState } from 'react';
-import VehicleCard from './VehicleCard';
-import { Search, Filter } from 'lucide-react';
+import { useState } from "react";
+import VehicleCard from "./VehicleCard";
+import { Search, Filter, Loader2, RefreshCw } from "lucide-react";
 
-export default function VehicleCatalog({ titulo, subtitulo, vehiculos, marcas }) {
-  const [busqueda, setBusqueda] = useState('');
-  const [marcaSeleccionada, setMarcaSeleccionada] = useState('Todas');
-  const [anioSeleccionado, setAnioSeleccionado] = useState('Todos');
+export default function VehicleCatalog({
+  titulo,
+  subtitulo,
+  vehiculos,
+  cargando,
+  error,
+  onRetry,
+}) {
+  const [busqueda, setBusqueda] = useState("");
+  const [marcaSeleccionada, setMarcaSeleccionada] = useState("Todas");
+  const [anioSeleccionado, setAnioSeleccionado] = useState("Todos");
 
-  // Filtrado dinámico de vehículos
+  const marcas = [
+    ...new Set(vehiculos.map((vehiculo) => vehiculo.marca).filter(Boolean)),
+  ].sort();
   const vehiculosFiltrados = vehiculos.filter((v) => {
-    const coincideTexto = v.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
-                          v.motor.toLowerCase().includes(busqueda.toLowerCase());
-    const coincideMarca = marcaSeleccionada === 'Todas' || v.titulo.toLowerCase().includes(marcaSeleccionada.toLowerCase());
-    
-    // Extracción básica de año para filtrar
-    const anio = parseInt(v.titulo.match(/\d{4}/)?.[0] || '0', 10);
-    let coincideAnio = true;
-    if (anioSeleccionado === '2020+') coincideAnio = anio >= 2020;
-    if (anioSeleccionado === '2015-2019') coincideAnio = anio >= 2015 && anio <= 2019;
+    const textoVehiculo = [
+      v.marca,
+      v.modelo,
+      v.tipo_vehiculo,
+      v.caracteristicas,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLocaleLowerCase();
+    const coincideTexto = textoVehiculo.includes(busqueda.toLocaleLowerCase());
+    const coincideMarca =
+      marcaSeleccionada === "Todas" || v.marca === marcaSeleccionada;
+    const anio = Number(v.anio);
+    const coincideAnio =
+      anioSeleccionado === "Todos" ||
+      (anioSeleccionado === "2020+" && anio >= 2020) ||
+      (anioSeleccionado === "2015-2019" && anio >= 2015 && anio <= 2019);
 
     return coincideTexto && coincideMarca && coincideAnio;
   });
@@ -26,7 +43,9 @@ export default function VehicleCatalog({ titulo, subtitulo, vehiculos, marcas })
     <div className="py-8 space-y-6">
       {/* encabezado */}
       <div className="border-b border-slate-800 pb-4">
-        <h1 className="text-2xl sm:text-3xl font-black text-[#e5a93b]">{titulo}</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-[#e5a93b]">
+          {titulo}
+        </h1>
         <p className="text-slate-400 text-xs sm:text-sm mt-1">{subtitulo}</p>
       </div>
 
@@ -58,7 +77,9 @@ export default function VehicleCatalog({ titulo, subtitulo, vehiculos, marcas })
           >
             <option value="Todas">Todas las marcas</option>
             {marcas.map((m) => (
-              <option key={m} value={m}>{m}</option>
+              <option key={m} value={m}>
+                {m}
+              </option>
             ))}
           </select>
 
@@ -75,16 +96,39 @@ export default function VehicleCatalog({ titulo, subtitulo, vehiculos, marcas })
       </div>
 
       {/* grid de tarjetas (1 col en cel, 2 en sm, 3 en md, 4/5 en lg) */}
-      {vehiculosFiltrados.length > 0 ? (
+      {cargando ? (
+        <p
+          role="status"
+          className="flex items-center justify-center gap-2 py-16 text-[#e5a93b]"
+        >
+          <Loader2 className="h-5 w-5 animate-spin" /> Cargando catálogo...
+        </p>
+      ) : error ? (
+        <div role="alert" className="space-y-3 py-12 text-center">
+          <p className="text-sm text-red-400">{error}</p>
+          <button
+            type="button"
+            onClick={onRetry}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#e5a93b] hover:text-[#f5b84c]"
+          >
+            <RefreshCw className="h-4 w-4" /> Reintentar
+          </button>
+        </div>
+      ) : vehiculosFiltrados.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full h-auto">
           {vehiculosFiltrados.map((v) => (
-            <VehicleCard key={v.id} {...v} />
+            <VehicleCard key={v.id_vehiculo} vehiculo={v} />
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 bg-[#0b1726]/40 rounded-xl border border-dashed border-slate-800">
-          <p className="text-slate-400 text-sm">No se encontraron vehículos que coincidan con la búsqueda.</p>
-        </div>
+        <p
+          role="status"
+          className="text-center py-12 bg-[#0b1726]/40 rounded-xl border border-dashed border-slate-800 text-slate-400 text-sm"
+        >
+          {vehiculos.length === 0
+            ? "No hay vehículos en este catálogo."
+            : "No se encontraron vehículos que coincidan con la búsqueda."}
+        </p>
       )}
     </div>
   );
