@@ -31,6 +31,16 @@ const contactoValidation = [
   requiredText("mensaje", "El mensaje"),
 ];
 
+const postulacionValidation = [
+  body("id_vacante")
+    .isInt({ min: 1 })
+    .withMessage("El ID de la vacante debe ser un entero positivo."),
+  requiredText("nombre_candidato", "El nombre del candidato", 100),
+  requiredEmail("correo_candidato", "El correo del candidato"),
+  requiredText("telefono_candidato", "El teléfono del candidato", 15),
+  requiredText("experiencia", "La experiencia"),
+];
+
 router.post(
   "/cotizaciones",
   requireObjectBody,
@@ -44,6 +54,13 @@ router.post(
   ...contactoValidation,
   validateRequest,
   publicController.crearMensaje,
+);
+router.post(
+  "/postular",
+  requireObjectBody,
+  ...postulacionValidation,
+  validateRequest,
+  publicController.crearPostulacion,
 );
 router.get("/vacantes", publicController.getVacantes);
 
