@@ -1,86 +1,147 @@
-import { useState } from 'react';
-import { Send, CheckCircle } from 'lucide-react';
-import api from '../services/api'; // Importar api
+import { useEffect, useState } from "react";
+import {
+  BriefcaseBusiness,
+  CheckCircle,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
+import api from "../services/api";
 
 export default function DriverBanner() {
-  const [form, setForm] = useState({ nombre: '', telefono: '', correo: '', ciudad: '', tipo: 'Ambos' });
+  const [vacantes, setVacantes] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState("");
+  const [reintento, setReintento] = useState(0);
 
-  const [enviado, setEnviado] = useState(false);
+  useEffect(() => {
+    let activo = true;
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+    const cargarVacantes = async () => {
+      setCargando(true);
+      setErrorCarga("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      // Usamos id_vacante = 1 (de prueba) o lo dejamos null si es general
-      await api.post('/public/postular', {
-        nombre_candidato: form.nombre,
-        correo_candidato: form.correo,
-        telefono_candidato: form.telefono,
-        experiencia: `Ciudad: ${form.ciudad}. Busca: ${form.tipo}`
-      });
-      setEnviado(true);
-    } catch (error) {
-      console.error(error);
-      alert("Error al enviar postulación");
-    }
-  };
+      try {
+        const respuesta = await api.get("/public/vacantes");
+        if (activo)
+          setVacantes(Array.isArray(respuesta.data) ? respuesta.data : []);
+      } catch (error) {
+        if (activo) {
+          setErrorCarga(
+            error.response?.data?.error ||
+              "No fue posible cargar las vacantes. Intenta de nuevo.",
+          );
+        }
+      } finally {
+        if (activo) setCargando(false);
+      }
+    };
 
-  if (enviado) {
-    return (
-      <section className="bg-[#0b1726]/90 border-2 border-green-600/90 rounded-2xl p-8 text-center my-8 shadow-2xl">
-        <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
-        <h2 className="text-xl font-bold text-white mb-2">¡Postulación Recibida!</h2>
-        <p className="text-slate-300 text-sm">Tu información ha sido guardada en nuestra base de datos.</p>
-      </section>
-    );
-  }
+    cargarVacantes();
+    return () => {
+      activo = false;
+    };
+  }, [reintento]);
 
   return (
-    <section className="bg-[#0b1726]/90 border-2 border-red-600/90 rounded-2xl p-4 sm:p-6 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 my-8 shadow-2xl">
-      {/* Columna izquierda */}
+    <section className="bg-[#0b1726]/90 border border-[#b8860b]/50 rounded-2xl p-4 sm:p-6 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 my-8 shadow-2xl">
       <div>
         <h2 className="text-2xl sm:text-3xl font-black text-[#e5a93b] leading-tight mb-1">
           VACANTES PARA CONDUCTORES
         </h2>
-        <p className="text-base sm:text-lg font-bold text-white mb-3">ÚNETE A NUESTRO EQUIPO</p>
+        <p className="text-base sm:text-lg font-bold text-white mb-3">
+          ÚNETE A NUESTRO EQUIPO
+        </p>
         <p className="text-slate-300 text-xs sm:text-sm mb-6 leading-relaxed">
-          Buscamos conductores responsables y comprometidos. Ofrecemos trabajo temporal y fijo con excelentes beneficios y un ambiente de trabajo seguro.
+          Buscamos conductores responsables y comprometidos. Consulta las
+          oportunidades disponibles.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold text-slate-200">
-          <div className="bg-[#122238] p-3 rounded-lg border border-slate-800 flex items-center gap-2">🚚 Trabajo temporal y fijo</div>
-          <div className="bg-[#122238] p-3 rounded-lg border border-slate-800 flex items-center gap-2">🤝 Buen ambiente laboral</div>
-          <div className="bg-[#122238] p-3 rounded-lg border border-slate-800 flex items-center gap-2">💰 Pagos puntuales</div>
-          <div className="bg-[#122238] p-3 rounded-lg border border-slate-800 flex items-center gap-2">📈 Capacitación continua</div>
+          <div className="bg-[#122238] p-3 rounded-lg border border-slate-800 flex items-center gap-2">
+            Trabajo temporal y fijo
+          </div>
+          <div className="bg-[#122238] p-3 rounded-lg border border-slate-800 flex items-center gap-2">
+            Buen ambiente laboral
+          </div>
+          <div className="bg-[#122238] p-3 rounded-lg border border-slate-800 flex items-center gap-2">
+            Pagos puntuales
+          </div>
+          <div className="bg-[#122238] p-3 rounded-lg border border-slate-800 flex items-center gap-2">
+            Capacitación continua
+          </div>
         </div>
       </div>
 
-      {/* Columna derecha formulario */}
-      <form onSubmit={handleSubmit} className="bg-[#050b14]/80 p-4 sm:p-5 rounded-xl border border-slate-800 flex flex-col gap-3">
-        <h3 className="font-bold text-slate-100 text-sm">ENVÍA TU CURRÍCULUM</h3>
-        <p className="text-xs text-slate-400 -mt-2 mb-1">Completa el formulario y nos pondremos en contacto.</p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input type="text" name="nombre" placeholder="Nombre completo" className="bg-[#0b1726] border border-slate-700 text-xs p-2.5 rounded-lg focus:outline-none focus:border-[#e5a93b]" onChange={handleChange} />
-          <input type="text" name="telefono" placeholder="Teléfono / WhatsApp" className="bg-[#0b1726] border border-slate-700 text-xs p-2.5 rounded-lg focus:outline-none focus:border-[#e5a93b]" onChange={handleChange} />
+      <div className="bg-[#050b14]/80 p-4 sm:p-5 rounded-xl border border-slate-800 flex flex-col gap-4">
+        <div>
+          <h3 className="font-bold text-slate-100 text-sm">VACANTES ACTIVAS</h3>
+          <p className="text-xs text-slate-400 mt-1">
+            Oportunidades disponibles actualmente.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input type="email" name="correo" placeholder="Correo electrónico" className="bg-[#0b1726] border border-slate-700 text-xs p-2.5 rounded-lg focus:outline-none focus:border-[#e5a93b]" onChange={handleChange} />
-          <input type="text" name="ciudad" placeholder="Ciudad" className="bg-[#0b1726] border border-slate-700 text-xs p-2.5 rounded-lg focus:outline-none focus:border-[#e5a93b]" onChange={handleChange} />
-        </div>
+        {cargando && (
+          <p
+            role="status"
+            className="flex items-center gap-2 text-sm text-slate-300"
+          >
+            <Loader2 className="w-4 h-4 animate-spin" /> Cargando vacantes...
+          </p>
+        )}
 
-        <div className="flex flex-wrap gap-4 text-xs text-slate-300 py-1">
-          <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="tipo" value="Trabajo fijo" onChange={handleChange} /> Fijo</label>
-          <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="tipo" value="Trabajo temporal" onChange={handleChange} /> Temporal</label>
-          <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="tipo" value="Ambos" defaultChecked onChange={handleChange} /> Ambos</label>
-        </div>
+        {!cargando && errorCarga && (
+          <div role="alert" className="space-y-3">
+            <p className="text-sm text-red-400">{errorCarga}</p>
+            <button
+              type="button"
+              onClick={() => setReintento((actual) => actual + 1)}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[#e5a93b] hover:text-[#f5b84c]"
+            >
+              <RefreshCw className="w-4 h-4" /> Reintentar
+            </button>
+          </div>
+        )}
 
-        <button className="w-full bg-[#e5a93b] hover:bg-[#f5b84c] text-slate-950 font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-2 mt-1">
-          Enviar mi currículum <Send className="w-3.5 h-3.5 fill-slate-950" />
-        </button>
-      </form>
+        {!cargando && !errorCarga && vacantes.length === 0 && (
+          <p role="status" className="text-sm text-slate-400">
+            No hay vacantes activas en este momento.
+          </p>
+        )}
+
+        {!cargando &&
+          !errorCarga &&
+          vacantes.map((vacante) => (
+            <article
+              key={vacante.id_vacante}
+              className="border-t border-slate-800 pt-4"
+            >
+              <div className="flex items-start gap-3">
+                <BriefcaseBusiness className="w-5 h-5 text-[#e5a93b] shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-white text-sm">
+                    {vacante.titulo_puesto}
+                  </h4>
+                  <p className="text-xs text-slate-300 mt-1 whitespace-pre-line">
+                    {vacante.descripcion_puesto}
+                  </p>
+                  {vacante.fecha_publicacion && (
+                    <p className="text-xs text-slate-500 mt-2">
+                      Publicada:{" "}
+                      {new Date(vacante.fecha_publicacion).toLocaleDateString(
+                        "es-SV",
+                      )}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </article>
+          ))}
+
+        <div className="border-t border-slate-800 pt-4 flex items-start gap-2 text-xs text-slate-400">
+          <CheckCircle className="w-4 h-4 shrink-0 text-[#e5a93b]" />
+          <p>La recepción de postulaciones en línea aún no está disponible.</p>
+        </div>
+      </div>
     </section>
   );
 }
