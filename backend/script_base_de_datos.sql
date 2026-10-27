@@ -1,4 +1,4 @@
--- Crear la base de datos (opcional, si ya la tienes creada, omite esta línea)
+
 CREATE DATABASE IF NOT EXISTS import_truck_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE import_truck_db;
 
@@ -95,10 +95,6 @@ CREATE TABLE IF NOT EXISTS Solicitud_Empleo (
 -- ==========================================
 -- DATOS DE PRUEBA (Para que no empieces en blanco)
 -- ==========================================
--- Insertar un administrador (La contraseña es 'admin123', ya encriptada con bcrypt para pruebas)
-INSERT INTO Usuarios (nombre, correo, password_hash, rol) 
-VALUES ('Administrador Principal', 'admin@importtruck.com', '$2b$10$I7J6WR9cus1UTbcN1sFT4..sjwNLjCq361GebzHtLV1CilkLIYFhu', 'admin');
-
 -- Insertar algunos vehículos de prueba
 INSERT INTO Vehiculos (tipo_vehiculo, marca, modelo, anio, precio, caracteristicas, imagen_url, estado) VALUES
 ('Camión', 'Freightliner', 'Cascadia 2018', 2018, 45000.00, 'Motor Detroit, Transmisión automática, 500k millas', 'https://ejemplo.com/camion1.jpg', 'Disponible'),
